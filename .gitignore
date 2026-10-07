@@ -1,0 +1,21 @@
+# WRDS data is licensed and must not be redistributed; only the manifest is versioned
+data/raw/*
+!data/raw/MANIFEST.json
+data/processed/
+
+# Personal files kept next to the project
+JD.md
+Shaotong_Li_Resume.docx
+
+# Python / tooling
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+.env
+*.tmp
+.vscode/
+.idea/
+
+# Third-party documents (copyrighted; cite instead of redistributing)
+references/

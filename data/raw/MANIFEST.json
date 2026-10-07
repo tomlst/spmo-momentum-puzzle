@@ -1,0 +1,307 @@
+{
+  "source": "WRDS (CRSP CIZ v2, Compustat, Fama-French)",
+  "pulled_at": "2026-10-06T20:33:47",
+  "params": {
+    "start": "1974-01-01",
+    "end": "2025-12-31",
+    "universe_from": "1974-01-01",
+    "funda_start": "1970-01-01"
+  },
+  "versions": {
+    "wrds": "3.5.0",
+    "pandas": "2.2.3",
+    "pyarrow": "25.0.0"
+  },
+  "datasets": {
+    "sp500_membership": {
+      "rows": 2084,
+      "columns": [
+        "permno",
+        "indno",
+        "indfam",
+        "mbrstartdt",
+        "mbrenddt",
+        "mbrflg"
+      ],
+      "sql": "SELECT permno, indno, indfam, mbrstartdt, mbrenddt, mbrflg FROM crsp.dsp500list_v2 ORDER BY permno, mbrstartdt",
+      "n_permno": 1956,
+      "date_min": "1925-12-31",
+      "date_max": "2025-12-22"
+    },
+    "crsp_monthly": {
+      "rows": 515385,
+      "columns": [
+        "permno",
+        "permco",
+        "ticker",
+        "issuernm",
+        "siccd",
+        "primaryexch",
+        "sharetype",
+        "securitytype",
+        "securitysubtype",
+        "mthcaldt",
+        "mthprc",
+        "mthprcflg",
+        "mthcap",
+        "mthret",
+        "mthretx",
+        "mthretflg",
+        "mthdelflg",
+        "mthvol",
+        "shrout",
+        "mthcumfacpr",
+        "mthcumfacshr"
+      ],
+      "sql": "SELECT permno, permco, ticker, issuernm, siccd, primaryexch, sharetype, securitytype, securitysubtype, mthcaldt, mthprc, mthprcflg, mthcap, mthret, mthretx, mthretflg, mthdelflg, mthvol, shrout, mthcumfacpr, mthcumfacshr FROM crsp.msf_v2 WHERE permno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') AND mthcaldt BETWEEN DATE '1974-01-01' AND DATE '2025-12-31' ORDER BY permno, mthcaldt",
+      "n_permno": 1680,
+      "date_min": "1974-01-31",
+      "date_max": "2025-12-31"
+    },
+    "crsp_stocknames": {
+      "rows": 6798,
+      "columns": [
+        "permno",
+        "permco",
+        "namedt",
+        "nameenddt",
+        "securitybegdt",
+        "securityenddt",
+        "hdrcusip",
+        "cusip",
+        "ticker",
+        "issuernm",
+        "primaryexch",
+        "shareclass",
+        "sharetype",
+        "securitytype",
+        "securitysubtype",
+        "siccd"
+      ],
+      "sql": "SELECT permno, permco, namedt, nameenddt, securitybegdt, securityenddt, hdrcusip, cusip, ticker, issuernm, primaryexch, shareclass, sharetype, securitytype, securitysubtype, siccd FROM crsp.stocknames_v2 WHERE permno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') ORDER BY permno, namedt",
+      "n_permno": 1680,
+      "date_min": "1925-12-31",
+      "date_max": "2025-12-09"
+    },
+    "ccm_link": {
+      "rows": 2212,
+      "columns": [
+        "gvkey",
+        "permno",
+        "permco",
+        "linktype",
+        "linkprim",
+        "liid",
+        "linkdt",
+        "linkenddt"
+      ],
+      "sql": "SELECT gvkey, lpermno AS permno, lpermco AS permco, linktype, linkprim, liid, linkdt, linkenddt FROM crsp.ccmxpf_lnkhist WHERE lpermno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') AND linktype IN ('LC', 'LU', 'LS') AND linkprim IN ('P', 'C', 'J') ORDER BY permno, linkdt",
+      "n_permno": 1676,
+      "date_min": "1949-07-01",
+      "date_max": "2025-11-03"
+    },
+    "comp_gics_history": {
+      "rows": 2043,
+      "columns": [
+        "gvkey",
+        "indtype",
+        "gsector",
+        "ggroup",
+        "gind",
+        "gsubind",
+        "indfrom",
+        "indthru"
+      ],
+      "sql": "SELECT gvkey, indtype, gsector, ggroup, gind, gsubind, indfrom, indthru FROM comp.co_hgic WHERE gvkey IN (SELECT DISTINCT gvkey FROM crsp.ccmxpf_lnkhist WHERE lpermno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') AND linktype IN ('LC', 'LU', 'LS') AND linkprim IN ('P', 'C', 'J')) ORDER BY gvkey, indfrom",
+      "date_min": "1999-06-30",
+      "date_max": "2026-10-06"
+    },
+    "comp_company": {
+      "rows": 1643,
+      "columns": [
+        "gvkey",
+        "conm",
+        "sic",
+        "naics",
+        "gsector",
+        "ggroup",
+        "gind",
+        "gsubind",
+        "ipodate",
+        "dldte",
+        "dlrsn"
+      ],
+      "sql": "SELECT gvkey, conm, sic, naics, gsector, ggroup, gind, gsubind, ipodate, dldte, dlrsn FROM comp.company WHERE gvkey IN (SELECT DISTINCT gvkey FROM crsp.ccmxpf_lnkhist WHERE lpermno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') AND linktype IN ('LC', 'LU', 'LS') AND linkprim IN ('P', 'C', 'J')) ORDER BY gvkey",
+      "date_min": "1946-01-14",
+      "date_max": "2023-05-04"
+    },
+    "comp_funda": {
+      "rows": 50241,
+      "columns": [
+        "gvkey",
+        "datadate",
+        "fyear",
+        "fyr",
+        "curcd",
+        "sich",
+        "seq",
+        "ceq",
+        "pstk",
+        "pstkrv",
+        "pstkl",
+        "txditc",
+        "at",
+        "lt",
+        "csho",
+        "prcc_f",
+        "revt",
+        "cogs",
+        "xsga",
+        "xint",
+        "ib",
+        "ni",
+        "oancf"
+      ],
+      "sql": "SELECT gvkey, datadate, fyear, fyr, curcd, sich, seq, ceq, pstk, pstkrv, pstkl, txditc, at, lt, csho, prcc_f, revt, cogs, xsga, xint, ib, ni, oancf FROM comp.funda WHERE gvkey IN (SELECT DISTINCT gvkey FROM crsp.ccmxpf_lnkhist WHERE lpermno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') AND linktype IN ('LC', 'LU', 'LS') AND linkprim IN ('P', 'C', 'J')) AND indfmt = 'INDL' AND datafmt = 'STD' AND popsrc = 'D' AND consol = 'C' AND datadate BETWEEN DATE '1970-01-01' AND DATE '2025-12-31' ORDER BY gvkey, datadate",
+      "date_min": "1970-01-31",
+      "date_max": "2025-12-31"
+    },
+    "ff5_factors_monthly": {
+      "rows": 624,
+      "columns": [
+        "date",
+        "mktrf",
+        "smb",
+        "hml",
+        "rmw",
+        "cma",
+        "rf",
+        "umd"
+      ],
+      "sql": "SELECT date, mktrf, smb, hml, rmw, cma, rf, umd FROM ff.fivefactors_monthly WHERE date BETWEEN DATE '1974-01-01' AND DATE '2025-12-31' ORDER BY date",
+      "date_min": "1974-01-01",
+      "date_max": "2025-12-01"
+    },
+    "ff5_factors_daily": {
+      "rows": 13111,
+      "columns": [
+        "date",
+        "mktrf",
+        "smb",
+        "hml",
+        "rmw",
+        "cma",
+        "rf",
+        "umd"
+      ],
+      "sql": "SELECT date, mktrf, smb, hml, rmw, cma, rf, umd FROM ff.fivefactors_daily WHERE date BETWEEN DATE '1974-01-01' AND DATE '2025-12-31' ORDER BY date",
+      "date_min": "1974-01-02",
+      "date_max": "2025-12-31"
+    },
+    "sp500_index_daily": {
+      "rows": 13111,
+      "columns": [
+        "date",
+        "vwretd",
+        "vwretx",
+        "ewretd",
+        "ewretx",
+        "sprtrn",
+        "spindx",
+        "totval",
+        "totcnt"
+      ],
+      "sql": "SELECT caldt AS date, vwretd, vwretx, ewretd, ewretx, sprtrn, spindx, totval, totcnt FROM crsp.dsp500_v2 WHERE caldt BETWEEN DATE '1974-01-01' AND DATE '2025-12-31' ORDER BY caldt",
+      "date_min": "1974-01-02",
+      "date_max": "2025-12-31"
+    },
+    "spy_daily": {
+      "rows": 8288,
+      "columns": [
+        "permno",
+        "date",
+        "dlyret",
+        "dlyretx",
+        "dlyprc",
+        "ticker"
+      ],
+      "sql": "SELECT permno, dlycaldt AS date, dlyret, dlyretx, dlyprc, ticker FROM crsp.dsf_v2 WHERE permno = 84398 AND dlycaldt <= DATE '2025-12-31' ORDER BY dlycaldt",
+      "n_permno": 1,
+      "date_min": "1993-01-29",
+      "date_max": "2025-12-31"
+    },
+    "spmo_daily": {
+      "rows": 2572,
+      "columns": [
+        "permno",
+        "date",
+        "dlyret",
+        "dlyretx",
+        "dlyprc",
+        "ticker"
+      ],
+      "sql": "SELECT permno, dlycaldt AS date, dlyret, dlyretx, dlyprc, ticker FROM crsp.dsf_v2 WHERE permno = 15725 AND dlycaldt <= DATE '2025-12-31' ORDER BY dlycaldt",
+      "n_permno": 1,
+      "date_min": "2015-10-09",
+      "date_max": "2025-12-31"
+    },
+    "crsp_daily": {
+      "layout": "crsp_daily/<year>.parquet",
+      "sql": "SELECT permno, permco, dlycaldt, dlyret, dlyretx, dlyretmissflg, dlydelflg, dlyprc, dlyprcflg, dlyclose, dlyopen, dlyhigh, dlylow, dlyvol, dlycap, shrout, dlycumfacpr, dlycumfacshr FROM crsp.dsf_v2 WHERE permno IN (SELECT DISTINCT permno FROM crsp.dsp500list_v2 WHERE mbrenddt >= DATE '1974-01-01') AND dlycaldt BETWEEN DATE '{y}-01-01' AND DATE '{y}-12-31' ORDER BY permno, dlycaldt",
+      "rows": {
+        "1974": 229139,
+        "1975": 229117,
+        "1976": 228666,
+        "1977": 227049,
+        "1978": 225557,
+        "1979": 223163,
+        "1980": 222743,
+        "1981": 221708,
+        "1982": 218444,
+        "1983": 218116,
+        "1984": 220278,
+        "1985": 215586,
+        "1986": 214519,
+        "1987": 213322,
+        "1988": 211593,
+        "1989": 207267,
+        "1990": 206994,
+        "1991": 209327,
+        "1992": 215691,
+        "1993": 219871,
+        "1994": 225052,
+        "1995": 226126,
+        "1996": 231544,
+        "1997": 232585,
+        "1998": 231341,
+        "1999": 226947,
+        "2000": 221609,
+        "2001": 213586,
+        "2002": 215246,
+        "2003": 213586,
+        "2004": 213773,
+        "2005": 214712,
+        "2006": 210248,
+        "2007": 206773,
+        "2008": 204209,
+        "2009": 198708,
+        "2010": 196695,
+        "2011": 196002,
+        "2012": 193554,
+        "2013": 195581,
+        "2014": 195211,
+        "2015": 193848,
+        "2016": 189545,
+        "2017": 186363,
+        "2018": 183881,
+        "2019": 181891,
+        "2020": 179149,
+        "2021": 176475,
+        "2022": 172985,
+        "2023": 170423,
+        "2024": 171479,
+        "2025": 167840
+      }
+    }
+  }
+}
