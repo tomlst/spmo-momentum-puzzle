@@ -87,16 +87,21 @@ def etf_monthly(raw, name):
 
 # ---------- Signal (steps 2-4) ----------
 
-def signal(ret, daily):
-    """x = momentum / annualised risk for every (t, PERMNO), both over months t-12 .. t-1."""
+def momentum_and_risk(ret, daily):
+    """Momentum and annualised risk for every (t, PERMNO), both over months t-12 .. t-1."""
     growth = 1 + ret.shift(1)
     for k in range(2, WINDOW + 1):
         growth = growth * (1 + ret.shift(k))                 # NaN anywhere in the window -> NaN
-    momentum = growth - 1
     s1, s2, n = (daily[k].shift(1).rolling(WINDOW).sum() for k in ("s1", "s2", "n"))
     n = n.where(n >= MIN_DAYS)
     var = (s2 - s1 ** 2 / n) / (n - 1)                       # sample variance of daily returns
-    return momentum / np.sqrt(252 * var)
+    return growth - 1, np.sqrt(252 * var)
+
+
+def signal(ret, daily):
+    """x = momentum / annualised risk."""
+    momentum, risk = momentum_and_risk(ret, daily)
+    return momentum / risk
 
 
 # ---------- Universe, weights, holding (steps 1, 5-8) ----------

@@ -7,7 +7,8 @@ survivorship-free S&P 500 universe from 1975 to 2025. In-sample is 1995–2025 a
 1975–1994. See [introduction.md](introduction.md).
 
 **Status:** data layer complete and validated; SPMO replication validated (correlation 0.992 with
-SPMO); attribution and improvement in progress.
+SPMO); in-sample attribution done ([output/attribution](output/attribution/summary.md)); improvement
+in progress.
 
 ## Repository layout
 
@@ -16,13 +17,16 @@ SPMO); attribution and improvement in progress.
 ├── data/
 │   ├── raw/                   WRDS extract (not versioned; MANIFEST.json is)
 │   └── processed/             derived series, e.g. SPMO proxy returns (not versioned)
+├── output/
+│   └── attribution/           in-sample M x C x V attribution: summary.md, figures, tables
 ├── reports/
 │   ├── data_validation.md     generated data-quality report
 │   └── spmo_replication.md    generated fit of the SPMO proxy to the ETF
 ├── scripts/
 │   ├── 01_fetch_wrds.py       download all raw data from WRDS
 │   ├── 02_validate_data.py    data-quality checks -> reports/data_validation.md
-│   └── 03_spmo_proxy.py       SPMO proxy backtest -> reports/spmo_replication.md
+│   ├── 03_spmo_proxy.py       SPMO proxy backtest -> reports/spmo_replication.md
+│   └── 04_attribution.py      2 x 2 x 2 attribution (in-sample) -> output/attribution/
 └── requirements.txt
 ```
 
@@ -81,6 +85,7 @@ export WRDS_USERNAME=<your-username>       # PowerShell: $env:WRDS_USERNAME="<yo
 python scripts/01_fetch_wrds.py            # ~30 min; prompts for the password once and can save it to pgpass
 python scripts/02_validate_data.py
 python scripts/03_spmo_proxy.py            # ~15 s
+python scripts/04_attribution.py           # ~20 s
 ```
 
 Raw WRDS data is licensed and is not included in this repository.
