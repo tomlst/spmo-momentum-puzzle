@@ -18,7 +18,12 @@ in progress.
 │   ├── raw/                   WRDS extract (not versioned; MANIFEST.json is)
 │   └── processed/             derived series, e.g. SPMO proxy returns (not versioned)
 ├── output/
-│   └── attribution/           in-sample M x C x V attribution: summary.md, figures, tables
+│   ├── attribution/           in-sample M x C x V attribution: summary.md, figures, tables
+│   ├── double_sort/           momentum x size double sort within the S&P 500
+│   ├── episodes/              what drove the M x C interaction in its four largest episodes
+│   ├── factor_regressions/    FF5 + UMD + reversal-factor regressions of the market-cap effects
+│   ├── har_vol_target/        HAR volatility targeting of the SPMO proxy
+│   └── vol_model_comparison/  HAR vs ridge, GARCH(1,1) and EWMA forecasts for volatility targeting
 ├── reports/
 │   ├── data_validation.md     generated data-quality report
 │   └── spmo_replication.md    generated fit of the SPMO proxy to the ETF
@@ -26,13 +31,18 @@ in progress.
 │   ├── 01_fetch_wrds.py       download all raw data from WRDS
 │   ├── 02_validate_data.py    data-quality checks -> reports/data_validation.md
 │   ├── 03_spmo_proxy.py       SPMO proxy backtest -> reports/spmo_replication.md
-│   └── 04_attribution.py      2 x 2 x 2 attribution (in-sample) -> output/attribution/
+│   ├── 04_attribution.py      2 x 2 x 2 attribution (in-sample) -> output/attribution/
+│   ├── 05_episodes.py         stock and size-group contributions to M x C episodes -> output/episodes/
+│   ├── 06_double_sort.py      momentum x size double sort (in-sample) -> output/double_sort/
+│   ├── 07_factor_regressions.py  factor regressions (in-sample) -> output/factor_regressions/
+│   ├── 08_har_vol_target.py   HAR volatility targeting (in-sample) -> output/har_vol_target/
+│   └── 09_vol_model_comparison.py  HAR vs ridge, GARCH, EWMA -> output/vol_model_comparison/
 └── requirements.txt
 ```
 
 ## Data
 
-All data comes from WRDS. Prices and returns span 1974-01 to 2025-12. That gives the first
+All data comes from WRDS, except the reversal factors, which come from the Kenneth French data library. Prices and returns span 1974-01 to 2025-12. That gives the first
 rebalance (reference date Feb-1975) a full 12-month look-back.
 
 | File | WRDS source | Content |
@@ -45,6 +55,7 @@ rebalance (reference date Feb-1975) a full 12-month look-back.
 | `comp_company` | `comp.company` | header GICS and SIC (fallback before 1999) |
 | `comp_funda` | `comp.funda` | annual fundamentals: book-equity and profitability inputs |
 | `ff5_factors_{daily,monthly}` | `ff.fivefactors_*` | Fama-French five factors, momentum (UMD), risk-free rate |
+| `ff_reversal_monthly` | French data library (not WRDS) | short-term and long-term reversal factors |
 | `sp500_index_daily` | `crsp.dsp500_v2` | S&P 500 index returns and level |
 | `spy_daily`, `spmo_daily` | `crsp.dsf_v2` | SPY and SPMO ETF benchmarks |
 
@@ -86,6 +97,11 @@ python scripts/01_fetch_wrds.py            # ~30 min; prompts for the password o
 python scripts/02_validate_data.py
 python scripts/03_spmo_proxy.py            # ~15 s
 python scripts/04_attribution.py           # ~20 s
+python scripts/05_episodes.py              # ~20 s
+python scripts/06_double_sort.py           # ~30 s
+python scripts/07_factor_regressions.py    # ~40 s
+python scripts/08_har_vol_target.py        # ~30 s
+python scripts/09_vol_model_comparison.py  # ~1.5 min
 ```
 
 Raw WRDS data is licensed and is not included in this repository.

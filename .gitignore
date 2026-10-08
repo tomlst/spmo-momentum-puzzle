@@ -19,3 +19,6 @@ __pycache__/
 
 # Third-party documents (copyrighted; cite instead of redistributing)
 references/
+
+# Stock-level CRSP detail (licensed); generated locally by scripts/05_episodes.py
+output/episodes/contributors.csv

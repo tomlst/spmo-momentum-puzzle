@@ -30,6 +30,7 @@ KEYS = {
     "comp_funda": ["gvkey", "datadate"],
     "ff5_factors_monthly": ["date"],
     "ff5_factors_daily": ["date"],
+    "ff_reversal_monthly": ["date"],
     "sp500_index_daily": ["date"],
     "spy_daily": ["date"],
     "spmo_daily": ["date"],
@@ -249,6 +250,13 @@ def main():
     rep.check("Fama-French factors complete and consistent", "FAIL" if na else "PASS",
               f"{na} nulls; daily-compounded vs monthly Mkt-RF max gap {gap:.4f} (rounding). "
               "Monthly dates are month-start: join on year-month")
+    rev = T["ff_reversal_monthly"]
+    na = int(rev.isna().sum().sum())
+    missing = sorted(set(ff_m.date) ^ set(rev.date))
+    rep.check("Reversal factors complete and aligned", "FAIL" if na or missing else "PASS",
+              f"{na} nulls; {len(missing)} months differ from the Fama-French monthly table "
+              f"({rev.date.min().date()} to {rev.date.max().date()}). French library, downloaded "
+              f"{ds['ff_reversal_monthly']['pulled_at'][:10]}")
     idx = T["sp500_index_daily"].set_index("date")
     for etf in ("spy_daily", "spmo_daily"):
         x = T[etf].sort_values("date")

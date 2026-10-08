@@ -1,5 +1,5 @@
 {
-  "source": "WRDS (CRSP CIZ v2, Compustat, Fama-French)",
+  "source": "WRDS (CRSP CIZ v2, Compustat, Fama-French) and the Kenneth French data library",
   "pulled_at": "2026-10-06T20:33:47",
   "params": {
     "start": "1974-01-01",
@@ -301,6 +301,25 @@
         "2023": 170423,
         "2024": 171479,
         "2025": 167840
+      }
+    },
+    "ff_reversal_monthly": {
+      "rows": 624,
+      "columns": [
+        "date",
+        "st_rev",
+        "lt_rev"
+      ],
+      "date_min": "1974-01-01",
+      "date_max": "2025-12-01",
+      "pulled_at": "2026-10-07T01:06:09",
+      "urls": {
+        "st_rev": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_ST_Reversal_Factor_CSV.zip",
+        "lt_rev": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_LT_Reversal_Factor_CSV.zip"
+      },
+      "crsp_vintage": {
+        "st_rev": "202608",
+        "lt_rev": "202608"
       }
     }
   }

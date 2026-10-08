@@ -135,17 +135,22 @@ def capped_weights(mc, score):
     return w
 
 
-def hold_returns(r, w):
-    """Monthly returns of a buy-and-hold basket; stocks with a missing return drop out pro rata."""
+def hold_weights(r, w):
+    """Start-of-month weights (months x stocks) of a buy-and-hold basket; a stock with a missing
+    return drops out and its weight is spread pro rata over the rest."""
     r, w = r.to_numpy(), w.to_numpy().copy()
-    out = np.empty(len(r))
+    out = np.empty(r.shape)
     for i, r_m in enumerate(r):
         w = np.where(np.isnan(r_m), 0.0, w)
         w = w / w.sum()
-        r_m = np.nan_to_num(r_m)
-        out[i] = w @ r_m
-        w = w * (1 + r_m)                                    # weights drift with returns
+        out[i] = w
+        w = w * (1 + np.nan_to_num(r_m))                     # weights drift with returns
     return out
+
+
+def hold_returns(r, w):
+    """Monthly returns of a buy-and-hold basket."""
+    return np.einsum("ij,ij->i", hold_weights(r, w), np.nan_to_num(r.to_numpy()))
 
 
 # ---------- Backtest ----------

@@ -36,6 +36,8 @@ Outputs (output/attribution/)
   fig5_effects_summary.png         every effect with a 95% confidence interval
   fig6_difference_matrix.png       8 x 8 matrix of pairwise return differences
   fig7_concentration.png           effective number of stocks at each rebalance
+  fig8_mxc_monthly_quarterly.png   M x C and its two components by month and by quarter
+  fig9_annual_returns_momentum.png panel (b) of fig1 on its own: the momentum-quintile portfolios
 
 Usage:
     python scripts/04_attribution.py [--raw data/raw] [--out output/attribution]
@@ -88,6 +90,7 @@ EFFECTS = [  # (group, name, formula over portfolio codes, description)
     ("Interactions", "M x C x V", "((111 - 110) - (101 - 100)) - ((011 - 010) - (001 - 000))",
      "C x V in the momentum quintile - in the S&P 500"),
 ]
+EVENTS = [("Post-COVID rebound", "2020-04", "2021-03")]   # labelled periods in fig 8: (label, first, last month)
 YEARLY_PANELS = [("C", ["C (market)", "C (momentum)", "M x C"]),
                  ("V", ["V (market)", "V (momentum)", "M x V"])]
 
@@ -95,7 +98,8 @@ YEARLY_PANELS = [("C", ["C (market)", "C (momentum)", "M x C"]),
 WEIGHT_COLORS = {"00": "#2a78d6", "10": "#eb6834", "01": "#1baf7a", "11": "#4a3aa7"}
 EFFECT_COLORS = ["#2a78d6", "#eb6834", "#1baf7a"]
 SURFACE, INK, INK_2, MUTED, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#898781", "#e1e0d9"
-DIVERGING = LinearSegmentedColormap.from_list("diverging", ["#e34948", "#f0efec", "#2a78d6"])
+POSITIVE, NEGATIVE = "#2a78d6", "#e34948"
+DIVERGING = LinearSegmentedColormap.from_list("diverging", [NEGATIVE, "#f0efec", POSITIVE])
 plt.rcParams.update({
     "figure.facecolor": SURFACE, "axes.facecolor": SURFACE, "savefig.facecolor": SURFACE,
     "axes.edgecolor": MUTED, "axes.labelcolor": INK_2, "xtick.color": INK_2, "ytick.color": INK_2,
@@ -128,22 +132,40 @@ def portfolio_weights(x, momentum, sigma, mc):
     return w
 
 
-def run(raw):
-    """Monthly returns of the portfolios, and the effective number of stocks at each rebalance."""
-    ret, cap, _, month_end = proxy.load_monthly(raw)
+def signals(raw):
+    """Monthly returns and identifiers, and for each in-sample rebalance (reference month, holding
+    months, DataFrame over the universe with x, momentum, sigma, market cap and market cap at t-12)."""
+    ret, cap, ids, month_end = proxy.load_monthly(raw)
     mem = pd.read_parquet(raw / "sp500_membership.parquet", columns=["permno", "mbrstartdt", "mbrenddt"])
     momentum, sigma = proxy.momentum_and_risk(ret, proxy.daily_sums(raw, ret.index))
     x_all = momentum / sigma
     forms = [t for t in ret.index if t.month in proxy.REF_MONTHS and t >= IS_FIRST_REF
              and t + proxy.LAG <= ret.index[-1]]
-    returns, eff_n = {}, {}
+    out = []
     for t in forms:
-        x = x_all.loc[t, proxy.universe(ret, mem, month_end, t)].dropna()
-        mc = cap.loc[t, x.index]
-        if mc.isna().any():
-            raise ValueError(f"{t}: market cap missing for {mc.isna().sum()} stocks")
-        w_t = portfolio_weights(x, momentum.loc[t, x.index], sigma.loc[t, x.index], mc)
+        u = x_all.loc[t, proxy.universe(ret, mem, month_end, t)].dropna().index
+        d = pd.DataFrame({"x": x_all.loc[t, u], "momentum": momentum.loc[t, u], "sigma": sigma.loc[t, u],
+                          "mc": cap.loc[t, u], "mc_lag": cap.loc[t - proxy.WINDOW, u]})
+        if d["mc"].isna().any():
+            raise ValueError(f"{t}: market cap missing for {d['mc'].isna().sum()} stocks")
         hold = pd.period_range(t + proxy.LAG, min(t + proxy.LAG + proxy.HOLD - 1, ret.index[-1]), freq="M")
+        out.append((t, hold, d))
+    return ret, ids, out
+
+
+def formations(raw):
+    """Monthly returns and identifiers, and (reference month, holding months, initial weights of
+    every portfolio) for each in-sample rebalance."""
+    ret, ids, sig = signals(raw)
+    return ret, ids, [(t, hold, portfolio_weights(d["x"], d["momentum"], d["sigma"], d["mc"]))
+                      for t, hold, d in sig]
+
+
+def run(raw):
+    """Monthly returns of the portfolios, and the effective number of stocks at each rebalance."""
+    ret, _, forms = formations(raw)
+    returns, eff_n = {}, {}
+    for t, hold, w_t in forms:
         for k, w in w_t.items():
             returns.setdefault(k, []).append(pd.Series(proxy.hold_returns(ret.loc[hold, w.index], w), index=hold))
         eff_n[t] = {k: 1 / (w ** 2).sum() for k, w in w_t.items() if k in PORTFOLIOS}
@@ -156,6 +178,10 @@ def run(raw):
 
 def annual(r):
     return (1 + r).groupby(r.index.year).prod() - 1
+
+
+def quarterly(r):
+    return (1 + r).groupby(r.index.asfreq("Q")).prod() - 1
 
 
 def mean_t(d):
@@ -249,6 +275,17 @@ def figures(r, yearly, stats, matrix, eff_n, out, period):
     footnote(fig, period, n, "* 1995 covers Apr-Dec.")
     fig.tight_layout(rect=(0, 0.02, 1, 1))
     save(fig, out / "fig1_annual_returns.png")
+
+    # 9. Calendar-year returns of the momentum quintile alone (panel b of fig1)
+    group = [f"1{cv}" for cv in WEIGHTING]
+    fig, ax = plt.subplots(figsize=(16, 5.5))
+    grouped_bars(ax, yearly[group].rename(columns=label), colors)
+    ax.set_ylabel("Calendar-year return")
+    ax.legend(ncol=4, loc="upper left")
+    ax.set_title("Calendar-year returns of the top momentum quintile (M = 1) by weighting scheme")
+    footnote(fig, period, n, "* 1995 covers Apr-Dec.")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    save(fig, out / "fig9_annual_returns_momentum.png")
 
     # 2. Conditional effects and interactions by year
     fig, axes = plt.subplots(2, 1, figsize=(16, 10), sharex=True)
@@ -378,6 +415,48 @@ def figures(r, yearly, stats, matrix, eff_n, out, period):
     fig.tight_layout(rect=(0, 0.03, 1, 1))
     save(fig, out / "fig7_concentration.png")
 
+    # 8. M x C and its two components, by month and by quarter, on a common scale per column
+    rows = [("M x C", ""), ("C (momentum)", ""), ("C (market)", "subtracted")]
+    columns = [("Monthly", r[codes], 25, 45), ("Quarterly", quarterly(r[codes]), 80, 40)]  # widths in days
+    fig, axes = plt.subplots(3, 2, figsize=(18, 12), sharex="col", sharey="col")
+    for j, (freq, d, width, pad) in enumerate(columns):
+        x = d.index.to_timestamp(how="start")
+        mxc = evaluate(stats.loc["M x C", "Formula"], d)
+        top = mxc.abs().nlargest(3).index                    # shaded in every row of the column
+        for i, (name, desc) in enumerate(rows):
+            ax = axes[i, j]
+            v = evaluate(stats.loc[name, "Formula"], d)
+            for p in top:
+                ax.axvspan(p.to_timestamp(how="start") - pd.Timedelta(days=pad),
+                           p.to_timestamp(how="end") + pd.Timedelta(days=pad), color=GRID, zorder=0)
+            for event, first, last in EVENTS:
+                a, b = pd.Period(first, "M").to_timestamp(how="start"), pd.Period(last, "M").to_timestamp(how="end")
+                ax.axvspan(a, b, color=GRID, zorder=0)
+                if i == 0:
+                    ax.text(a + (b - a) / 2, 0.97, f"{event}\n{pd.Period(first, 'M').strftime('%b-%Y')} to "
+                            f"{pd.Period(last, 'M').strftime('%b-%Y')}", transform=ax.get_xaxis_transform(),
+                            ha="center", va="top", color=INK_2, fontsize=8.5)
+            ax.bar(x, v, width=width, align="edge", color=[POSITIVE if y >= 0 else NEGATIVE for y in v])
+            ax.axhline(0, color=INK_2, linewidth=0.8)
+            ax.axhline(v.mean(), color=INK, linewidth=1, linestyle="--")
+            ax.yaxis.set_major_locator(MaxNLocator(steps=[1, 2, 5, 10]))
+            ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+            ax.set_title(f"({'abcdef'[2 * i + j]}) {freq}: {name}{', ' + desc if desc else ''}")
+            ax.text(1.0, 1.01, f"mean {v.mean():+.2%} (dashed), positive in {(v > 0).mean():.0%} of {len(v)}",
+                    transform=ax.transAxes, ha="right", va="bottom", color=INK_2, fontsize=9)
+            if i == 0:
+                for p in top:
+                    ax.annotate(f"{p}: {mxc[p]:+.1%}", (p.to_timestamp(how="start"), mxc[p]),
+                                xytext=(6, -4 if mxc[p] > 0 else 4), textcoords="offset points",
+                                va="top" if mxc[p] > 0 else "bottom", color=INK_2, fontsize=9)
+        axes[1, j].set_ylabel(f"Difference in {freq.lower()} return")
+    fig.suptitle("M x C and its two components: M x C = C (momentum quintile) - C (S&P 500)", x=0.01, ha="left")
+    footnote(fig, period, n, f"\nC (momentum) = {stats.loc['C (momentum)', 'Formula']}; C (market) = "
+             f"{stats.loc['C (market)', 'Formula']}. Quarterly values use compounded quarterly portfolio returns. "
+             "Shading marks the three largest |M x C| periods and the labelled post-COVID rebound.")
+    fig.tight_layout(rect=(0, 0.035, 1, 1))
+    save(fig, out / "fig8_mxc_monthly_quarterly.png")
+
 
 # ---------- Report ----------
 
@@ -445,6 +524,8 @@ def summary(r, stats, matrix, eff_n, rf, period):
         ("fig5_effects_summary.png", "Summary of effects"),
         ("fig6_difference_matrix.png", "Pairwise difference matrix"),
         ("fig7_concentration.png", "Concentration"),
+        ("fig8_mxc_monthly_quarterly.png", "M x C and its components by month and by quarter"),
+        ("fig9_annual_returns_momentum.png", "Calendar-year returns, momentum quintile"),
     ]:
         lines += [f"![{caption}]({f})", ""]
     return "\n".join(lines)

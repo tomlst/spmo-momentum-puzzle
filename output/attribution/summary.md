@@ -69,3 +69,7 @@ Annualised mean of the monthly return difference, row minus column, with the t-s
 ![Pairwise difference matrix](fig6_difference_matrix.png)
 
 ![Concentration](fig7_concentration.png)
+
+![M x C and its components by month and by quarter](fig8_mxc_monthly_quarterly.png)
+
+![Calendar-year returns, momentum quintile](fig9_annual_returns_momentum.png)
