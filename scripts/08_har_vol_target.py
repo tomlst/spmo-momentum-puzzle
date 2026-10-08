@@ -61,12 +61,13 @@ COLORS = {MANAGED: "#eb6834", UNMANAGED: "#2a78d6"}
 
 # ---------- Data ----------
 
-def proxy_panel(raw, lookback_years=1):
+def proxy_panel(raw, lookback_years=1, first_ref=attribution.IS_FIRST_REF, last_ref=None):
     """Monthly returns of the SPMO proxy (pipeline); its daily returns, held within each month from
     the pipeline's start-of-month weights; for each holding month, the weights known at the previous
     month end (before any delisting in the month is known); and the daily stock-return panel, starting
-    `lookback_years` before the first holding month."""
-    ret, _, forms = attribution.formations(raw)
+    `lookback_years` before the first holding month. Rebalances with reference month in [first_ref,
+    last_ref]; in-sample by default."""
+    ret, _, forms = attribution.formations(raw, first_ref, last_ref)
     first, last = forms[0][1][0], forms[-1][1][-1]
     panel = pd.concat([pd.read_parquet(raw / "crsp_daily" / f"{y}.parquet", columns=["permno", "dlycaldt", "dlyret"])
                        for y in range(first.year - lookback_years, last.year + 1)])

@@ -36,7 +36,8 @@ in progress.
 │   ├── 06_double_sort.py      momentum x size double sort (in-sample) -> output/double_sort/
 │   ├── 07_factor_regressions.py  factor regressions (in-sample) -> output/factor_regressions/
 │   ├── 08_har_vol_target.py   HAR volatility targeting (in-sample) -> output/har_vol_target/
-│   └── 09_vol_model_comparison.py  HAR vs ridge, GARCH, EWMA -> output/vol_model_comparison/
+│   ├── 09_vol_model_comparison.py  HAR vs ridge, GARCH, EWMA -> output/vol_model_comparison/
+│   └── 10_oos.py              out-of-sample evaluation (1975-1994), run once -> output/oos/
 └── requirements.txt
 ```
 
@@ -102,6 +103,7 @@ python scripts/06_double_sort.py           # ~30 s
 python scripts/07_factor_regressions.py    # ~40 s
 python scripts/08_har_vol_target.py        # ~30 s
 python scripts/09_vol_model_comparison.py  # ~1.5 min
+python scripts/10_oos.py                   # out-of-sample; design frozen at tag pre-oos
 ```
 
 Raw WRDS data is licensed and is not included in this repository.

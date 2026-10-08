@@ -132,15 +132,16 @@ def portfolio_weights(x, momentum, sigma, mc):
     return w
 
 
-def signals(raw):
-    """Monthly returns and identifiers, and for each in-sample rebalance (reference month, holding
-    months, DataFrame over the universe with x, momentum, sigma, market cap and market cap at t-12)."""
+def signals(raw, first_ref=IS_FIRST_REF, last_ref=None):
+    """Monthly returns and identifiers, and for each rebalance with reference month in [first_ref,
+    last_ref] (in-sample by default) the reference month, holding months and a DataFrame over the
+    universe with x, momentum, sigma, market cap and market cap at t-12."""
     ret, cap, ids, month_end = proxy.load_monthly(raw)
     mem = pd.read_parquet(raw / "sp500_membership.parquet", columns=["permno", "mbrstartdt", "mbrenddt"])
     momentum, sigma = proxy.momentum_and_risk(ret, proxy.daily_sums(raw, ret.index))
     x_all = momentum / sigma
-    forms = [t for t in ret.index if t.month in proxy.REF_MONTHS and t >= IS_FIRST_REF
-             and t + proxy.LAG <= ret.index[-1]]
+    forms = [t for t in ret.index if t.month in proxy.REF_MONTHS and t >= first_ref
+             and (last_ref is None or t <= last_ref) and t + proxy.LAG <= ret.index[-1]]
     out = []
     for t in forms:
         u = x_all.loc[t, proxy.universe(ret, mem, month_end, t)].dropna().index
@@ -153,10 +154,10 @@ def signals(raw):
     return ret, ids, out
 
 
-def formations(raw):
+def formations(raw, first_ref=IS_FIRST_REF, last_ref=None):
     """Monthly returns and identifiers, and (reference month, holding months, initial weights of
-    every portfolio) for each in-sample rebalance."""
-    ret, ids, sig = signals(raw)
+    every portfolio) for each rebalance with reference month in [first_ref, last_ref]."""
+    ret, ids, sig = signals(raw, first_ref, last_ref)
     return ret, ids, [(t, hold, portfolio_weights(d["x"], d["momentum"], d["sigma"], d["mc"]))
                       for t, hold, d in sig]
 
