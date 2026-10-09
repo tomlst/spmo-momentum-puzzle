@@ -5,7 +5,7 @@ data/processed/
 
 # Personal files kept next to the project
 JD.md
-Shaotong_Li_Resume.docx
+Shaotong_Li_Resume*.docx
 
 # Python / tooling
 __pycache__/

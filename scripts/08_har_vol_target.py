@@ -29,7 +29,8 @@ Outputs (output/har_vol_target/)
   fig2_exposure.png               exposure to the SPMO proxy
   fig3_performance.png            growth of $1, drawdown and rolling 12-month volatility
   fig4_coefficients.png           HAR coefficients as the window expands
-  fig5_cumulative_in_sample.png   growth of $1 over the whole in-sample period
+  fig5_cumulative_in_sample.png   growth of $1 and drawdown over the whole in-sample period
+  fig6_monthly_vol.png            monthly realised volatility of the proxy (volatility clustering)
 
 Usage:
     python scripts/08_har_vol_target.py [--raw data/raw] [--out output/har_vol_target]
@@ -248,7 +249,7 @@ def figures(df, coefs, out, period):
 
 # ---------- Report ----------
 
-def summary(df, coefs, acc, rf, check, period):
+def summary(df, coefs, acc, rf, check, period, clust):
     full_table, ex = perf_table(df, rf)
     lines = [
         "# HAR volatility targeting of the SPMO proxy",
@@ -269,6 +270,13 @@ def summary(df, coefs, acc, rf, check, period):
         f"{MIN_OBS} months.",
         f"- Daily proxy returns are rebuilt from the pipeline's start-of-month weights; compounded, they match "
         f"the pipeline's monthly returns within {check:.2%} a month (delisting returns exist only monthly).",
+        "",
+        "## Volatility clustering",
+        "",
+        f"Monthly realised volatility of the proxy over all {clust['months']} in-sample months: mean "
+        f"{clust['mean']:.1%}, median {clust['median']:.1%}. Autocorrelation at lag 1: {clust['ac1']:.2f} "
+        f"({clust['ac1_log']:.2f} in logs); lag 3: {clust['ac3']:.2f}; lag 12: {clust['ac12']:.2f}. High-volatility "
+        "months tend to follow high-volatility months, which is what makes a forecast useful for sizing.",
         "",
         "## Forecast accuracy",
         "",
@@ -302,37 +310,82 @@ def summary(df, coefs, acc, rf, check, period):
     lines += ["## Figures", ""]
     for f, c in [("fig1_forecast.png", "Forecast vs realised"), ("fig2_exposure.png", "Exposure"),
                  ("fig3_performance.png", "Performance"), ("fig4_coefficients.png", "Coefficients"),
-                 ("fig5_cumulative_in_sample.png", "Whole in-sample period")]:
+                 ("fig5_cumulative_in_sample.png", "Whole in-sample period"),
+                 ("fig6_monthly_vol.png", "Monthly realised volatility")]:
         lines += [f"![{c}]({f})", ""]
     lines += ["## Reference", "", "Corsi, F. (2009). A simple approximate long-memory model of realized volatility. "
               "*Journal of Financial Econometrics* 7(2), 174-196.", ""]
     return "\n".join(lines)
 
 
+def clustering(rv):
+    """Persistence of the proxy's monthly realised volatility over the whole in-sample period."""
+    v = rv["RV1"].dropna()
+    return {"months": len(v), "mean": v.mean(), "median": v.median(), "ac1": v.autocorr(1),
+            "ac1_log": np.log(v).autocorr(1), "ac3": v.autocorr(3), "ac12": v.autocorr(12)}
+
+
+def clustering_figure(rv, out):
+    """Monthly realised volatility of the proxy, the motivation for volatility targeting."""
+    v = rv["RV1"].dropna()
+    c = clustering(rv)
+    x = v.index.to_timestamp(how="start")
+    box = {"boxstyle": "round,pad=0.2", "facecolor": attribution.SURFACE, "edgecolor": "none", "alpha": 0.9}
+    fig, ax = plt.subplots(figsize=(15, 6))
+    ax.bar(x, v, width=25, align="edge", color="#eb6834")
+    ax.axhline(v.mean(), color=attribution.INK, linewidth=0.9, linestyle="--")
+    ax.annotate(f"Average {v.mean():.1%} (median {v.median():.1%}); first-order autocorrelation {c['ac1']:.2f}",
+                (0, v.mean()), xycoords=("axes fraction", "data"), xytext=(4, 4), textcoords="offset points",
+                fontsize=8.5, color=attribution.INK_2, bbox=box)
+    top = v.nlargest(6)
+    for m, val in top.items():
+        if any(abs(m.ordinal - k.ordinal) <= 2 and top[k] > val for k in top.index):
+            continue                                          # one label per episode
+        ax.annotate(f"{m.strftime('%b-%Y')}: {val:.0%}", (m.to_timestamp(how="start") + pd.Timedelta(days=12), val),
+                    xytext=(0, 5), textcoords="offset points", ha="center", fontsize=8.5, color=attribution.INK, bbox=box)
+    ax.set_ylim(0, v.max() * 1.12)
+    ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    ax.set_ylabel("Annualised, from the month's daily returns")
+    ax.set_title("SPMO proxy: realised volatility by month")
+    fig.text(0.01, 0.005, f"In-sample: {v.index[0]} to {v.index[-1]}. Realised volatility = sqrt(252 x mean of the month's "
+             "squared daily returns). Daily proxy returns are buy-and-hold within each month from the pipeline's "
+             "start-of-month weights. Data: CRSP via WRDS.", ha="left", va="bottom", color=attribution.MUTED, fontsize=8.5)
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    attribution.save(fig, out / "fig6_monthly_vol.png")
+
+
 def cumulative_figure(monthly, df, rf, out):
-    """Growth of $1 over the whole in-sample period. Before the first forecast the HAR strategy is
-    fully invested in the proxy, so the two curves coincide until then."""
+    """Growth of $1 and drawdown over the whole in-sample period. Before the first forecast the HAR
+    strategy is fully invested in the proxy, so the two curves coincide until then."""
     first = df.index[0]
     har = monthly.copy()
     har.loc[df.index] = df[MANAGED]
     r = pd.DataFrame({UNMANAGED: monthly, MANAGED: har})
     dates = [r.index[0].to_timestamp(how="start")] + list(r.index.to_timestamp(how="end"))
-    fig, ax = plt.subplots(figsize=(14, 7))
-    ax.axvspan(dates[0], first.to_timestamp(how="start"), color=attribution.GRID, zorder=0)
-    ax.annotate("Warm-up: no forecast yet,\nHAR strategy fully invested", (dates[0], 1), xycoords=("data", "axes fraction"),
-                xytext=(6, -6), textcoords="offset points", ha="left", va="top", fontsize=8.5, color=attribution.INK_2)
+    fig, axes = plt.subplots(2, 1, figsize=(14, 10), sharex=True, gridspec_kw={"height_ratios": [1.5, 1]})
+    for ax in axes:
+        ax.axvspan(dates[0], first.to_timestamp(how="start"), color=attribution.GRID, zorder=0)
+    axes[0].annotate("Warm-up: no forecast yet,\nHAR strategy fully invested", (dates[0], 1), xycoords=("data", "axes fraction"),
+                     xytext=(6, -6), textcoords="offset points", ha="left", va="top", fontsize=8.5, color=attribution.INK_2)
     for k, c in COLORS.items():
         g = np.concatenate([[1.0], (1 + r[k]).cumprod().to_numpy()])
         ex = r[k] - rf.loc[r.index]
-        ax.plot(dates, g, color=c, linewidth=2,
-                label=f"{k}: cumulative {g[-1] - 1:+.0%}, CAGR {g[-1] ** (12 / len(r)) - 1:.1%}, "
-                      f"Sharpe {ex.mean() / ex.std() * 12 ** 0.5:.2f}")
-    ax.set_yscale("log")
-    ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"${v:g}"))
-    ax.set_ylabel("Growth of $1 (log scale)")
-    ax.set_title(f"SPMO proxy vs HAR volatility targeting, whole in-sample period "
-                 f"({r.index[0].strftime('%b-%Y')} to {r.index[-1].strftime('%b-%Y')})")
-    ax.legend(loc="upper left", bbox_to_anchor=(0, 0.9))
+        dd = g / np.maximum.accumulate(g) - 1
+        axes[0].plot(dates, g, color=c, linewidth=2,
+                     label=f"{k}: cumulative {g[-1] - 1:+.0%}, CAGR {g[-1] ** (12 / len(r)) - 1:.1%}, "
+                           f"Sharpe {ex.mean() / ex.std() * 12 ** 0.5:.2f}")
+        axes[1].plot(dates, dd, color=c, linewidth=1.3, label=f"{k}: max drawdown {dd.min():.0%}")
+    axes[0].set_yscale("log")
+    axes[0].yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"${v:g}"))
+    axes[0].set_ylabel("Growth of $1 (log scale)")
+    axes[0].set_title("(a) Growth of $1 (log scale)")
+    axes[0].legend(loc="upper left", bbox_to_anchor=(0, 0.88))
+    axes[1].yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    axes[1].set_ylabel("Drawdown")
+    axes[1].set_title("(b) Drawdown")
+    axes[1].legend(loc="lower right")
+    fig.suptitle(f"SPMO proxy vs HAR volatility targeting, whole in-sample period "
+                 f"({r.index[0].strftime('%b-%Y')} to {r.index[-1].strftime('%b-%Y')})", x=0.01, ha="left")
     fig.text(0.01, 0.005, f"In-sample. HAR targeting starts in {first.strftime('%b-%Y')}, after 12 months of inputs and "
              f"{MIN_OBS} months of estimation. Monthly total returns, no transaction or financing costs. Data: CRSP via WRDS.",
              ha="left", va="bottom", color=attribution.MUTED, fontsize=8.5)
@@ -368,7 +421,9 @@ def main():
     df.rename_axis("month").to_csv(args.out / "monthly.csv", float_format="%.6f")
     figures(df, coefs.loc[months], args.out, period)
     cumulative_figure(monthly, df, rf, args.out)
-    (args.out / "summary.md").write_text(summary(df, coefs.loc[months], acc, rf, check, period), encoding="utf-8")
+    clustering_figure(rv, args.out)
+    (args.out / "summary.md").write_text(summary(df, coefs.loc[months], acc, rf, check, period, clustering(rv)),
+                                         encoding="utf-8")
     print(f"Months {months[0]} .. {months[-1]} ({len(months)}); daily/monthly max gap {check:.4%}; wrote {args.out}")
 
 

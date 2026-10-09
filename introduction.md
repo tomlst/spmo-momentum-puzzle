@@ -81,8 +81,10 @@ characteristics are in [reports/spmo_replication.md](reports/spmo_replication.md
 | SPMO (actual) | — | — | 17.5% | 15.9% |
 
 Adding the cap raises the correlation from 0.979 to 0.992 and lowers the tracking error from 3.5% to
-2.0%, so the cap is the most important rule to replicate. The capped proxy returns 0.5% a year less
-than SPMO, even though SPMO's returns are after fees.
+2.0%, because SPMO itself applies it (in 2024 the uncapped proxy returned 62.1%, the capped one 48.3%
+and SPMO 45.8%). Over the whole in-sample period the cap barely changes performance (12.7% vs 12.4% a
+year, Sharpe 0.63 for both); it matters for replication accuracy rather than for long-run returns.
+The capped proxy returns 0.5% a year less than SPMO, even though SPMO's returns are after fees.
 
 ### Remaining differences from the index
 

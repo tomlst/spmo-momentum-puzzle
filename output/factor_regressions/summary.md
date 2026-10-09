@@ -19,6 +19,21 @@ Annualised, % a year, t-stat in brackets.
 | Size slope, M5 - average (lagged size) | +2.4% (1.28) | +1.2% (0.62) | +1.2% (0.58) | +1.2% (0.60) |
 | SPMO proxy, excess return (reference) | +10.9% (3.03) | +0.7% (0.58) | +0.7% (0.58) | +0.7% (0.60) |
 
+## Factor premia
+
+The factors themselves over the same months: annualised mean (Newey-West t) and Sharpe ratio. Factors are long-short returns, so the Sharpe ratio uses no risk-free rate.
+
+| Factor | Full period: mean (t) | Full period: Sharpe | 1995-2014: mean (t) | 1995-2014: Sharpe | 2015-2025: mean (t) | 2015-2025: Sharpe |
+|---|---|---|---|---|---|---|
+| Mkt-RF | +9.3% (3.29) | 0.60 | +7.9% (2.03) | 0.51 | +11.9% (3.26) | 0.77 |
+| SMB | +0.8% (0.43) | 0.07 | +2.6% (1.15) | 0.23 | -2.5% (-0.83) | -0.25 |
+| HML | +1.6% (0.64) | 0.14 | +3.3% (1.10) | 0.30 | -1.4% (-0.30) | -0.11 |
+| RMW | +4.0% (2.12) | 0.42 | +4.4% (1.62) | 0.41 | +3.3% (1.60) | 0.45 |
+| CMA | +1.9% (1.25) | 0.25 | +3.8% (2.07) | 0.51 | -1.4% (-0.53) | -0.17 |
+| UMD | +4.3% (1.40) | 0.26 | +5.5% (1.26) | 0.30 | +2.2% (0.61) | 0.16 |
+| ST_Rev | +2.1% (1.08) | 0.16 | +3.2% (1.25) | 0.23 | +0.2% (0.06) | 0.02 |
+| LT_Rev | +0.7% (0.35) | 0.07 | +2.6% (1.22) | 0.30 | -2.7% (-0.72) | -0.25 |
+
 ## Coefficients: FF5 + UMD
 
 Loadings with t-stats in brackets.

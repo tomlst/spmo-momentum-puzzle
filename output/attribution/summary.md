@@ -54,6 +54,17 @@ Annualised mean of the monthly return difference, row minus column, with the t-s
 | `110` | +1.8% (0.64) | +2.2% (0.79) | +2.6% (1.23) | +3.0% (1.36) | +2.2% (1.81) | +2.4% (1.86) |  | +0.6% (1.16) |
 | `111` | +1.2% (0.46) | +1.6% (0.63) | +2.0% (1.08) | +2.4% (1.28) | +1.6% (1.33) | +1.8% (1.69) | -0.6% (-1.16) |  |
 
+## Robustness of M x C
+
+Annualised mean with two t-stats in brackets: independent months / Newey-West (6 lags). The excluded years are the two calendar years with the largest M x C (2009: +33.6%, 2024: +29.7%).
+
+| Sample | Months | C (market) | C (momentum) | M x C |
+|---|---|---|---|---|
+| Full period | 369 | -0.8% (-0.84 / -0.65) | +2.0% (1.77 / 1.58) | +2.8% (2.84 / 2.39) |
+| 1995-2014 | 237 | -2.6% (-1.98 / -1.49) | +0.5% (0.43 / 0.37) | +3.1% (2.68 / 2.18) |
+| 2015-2025 | 132 | +2.3% (1.56 / 1.48) | +4.6% (2.09 / 2.04) | +2.3% (1.26 / 1.12) |
+| Excluding 2009 and 2024 | 345 | -0.6% (-0.62 / -0.47) | +0.8% (0.72 / 0.69) | +1.4% (1.48 / 1.58) |
+
 ## Figures
 
 ![Calendar-year returns](fig1_annual_returns.png)

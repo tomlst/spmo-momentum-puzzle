@@ -461,6 +461,38 @@ def figures(r, yearly, stats, matrix, eff_n, out, period):
 
 # ---------- Report ----------
 
+def robustness(r):
+    """M x C and its components by subperiod, with independent-month and Newey-West t-stats, and with
+    the two largest calendar years excluded."""
+    nw = importlib.import_module("07_factor_regressions").ols_nw    # lazy: 07 imports this module
+    formula = {name: f for _, name, f, _ in EFFECTS}
+    names = ["C (market)", "C (momentum)", "M x C"]
+    years = r.index.year
+    yearly_mxc = evaluate(formula["M x C"], annual(r))
+    top2 = sorted(yearly_mxc.nlargest(2).index)
+    samples = [("Full period", np.ones(len(r), dtype=bool)), ("1995-2014", years <= 2014), ("2015-2025", years >= 2015),
+               (f"Excluding {top2[0]} and {top2[1]}", ~np.isin(years, top2))]
+    rows = []
+    for label, mask in samples:
+        row = {"Sample": label, "Months": int(mask.sum())}
+        for n in names:
+            d = evaluate(formula[n], r[mask])
+            m, t = mean_t(d)
+            b, tnw, _ = nw(d.to_numpy(), np.empty((len(d), 0)))
+            row[n] = f"{m:+.1%} ({t:.2f} / {tnw[0]:.2f})"
+        rows.append(row)
+    return [
+        "## Robustness of M x C",
+        "",
+        "Annualised mean with two t-stats in brackets: independent months / Newey-West (6 lags). The excluded "
+        f"years are the two calendar years with the largest M x C ({top2[0]}: {yearly_mxc[top2[0]]:+.1%}, "
+        f"{top2[1]}: {yearly_mxc[top2[1]]:+.1%}).",
+        "",
+        proxy.md_table(pd.DataFrame(rows)),
+        "",
+    ]
+
+
 def summary(r, stats, matrix, eff_n, rf, period):
     perf = performance(r, rf)
     names = {**PORTFOLIOS, **REFERENCES}
@@ -514,6 +546,7 @@ def summary(r, stats, matrix, eff_n, rf, period):
         "",
         proxy.md_table(mat),
         "",
+        *robustness(r[list(PORTFOLIOS)]),
         "## Figures",
         "",
     ]

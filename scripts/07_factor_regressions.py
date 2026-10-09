@@ -142,7 +142,23 @@ def alpha_table(deps, means, results):
     }))
 
 
-def summary(deps, means, results, sub, period):
+def factor_premia(factors, months):
+    """Annualised mean (Newey-West t) and Sharpe ratio of each factor over the full period and the subperiods."""
+    periods = [("Full period", months)] + [(label, months[(months.year >= a) & (months.year <= b)])
+                                            for label, a, b in SUBPERIODS]
+    rows = []
+    for c, name in FACTOR_NAMES.items():
+        row = {"Factor": name}
+        for label, m in periods:
+            f = factors.loc[m, c].dropna().to_numpy()
+            b, t, _ = ols_nw(f, np.empty((len(f), 0)))
+            row[f"{label}: mean (t)"] = f"{12 * b[0]:+.1%} ({t[0]:.2f})"
+            row[f"{label}: Sharpe"] = f"{f.mean() / f.std() * 12 ** 0.5:.2f}"
+        rows.append(row)
+    return proxy.md_table(pd.DataFrame(rows))
+
+
+def summary(deps, means, results, sub, period, premia):
     lines = [
         "# Factor regressions of the market-cap effects",
         "",
@@ -160,6 +176,13 @@ def summary(deps, means, results, sub, period):
         "Annualised, % a year, t-stat in brackets.",
         "",
         alpha_table(deps, means, results),
+        "",
+        "## Factor premia",
+        "",
+        "The factors themselves over the same months: annualised mean (Newey-West t) and Sharpe ratio. Factors "
+        "are long-short returns, so the Sharpe ratio uses no risk-free rate.",
+        "",
+        premia,
         "",
     ]
     for spec, cols in SPECS.items():
@@ -315,7 +338,8 @@ def main():
     coefs.update({(label, spec): res for label, (_, _, rs) in sub.items() for spec, res in rs.items()})
     pd.concat(coefs, names=["period", "specification"]).to_csv(args.out / "coefficients.csv", float_format="%.6f")
     figures(deps, means, results, sub, args.out, period, n_rebal)
-    (args.out / "summary.md").write_text(summary(deps, means, results, sub, period), encoding="utf-8")
+    premia = factor_premia(factors, deps.index)
+    (args.out / "summary.md").write_text(summary(deps, means, results, sub, period, premia), encoding="utf-8")
     print(f"Months {deps.index[0]} .. {deps.index[-1]} ({len(deps)}); wrote {args.out}")
 
 

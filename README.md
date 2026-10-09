@@ -23,6 +23,8 @@ in progress.
 │   ├── episodes/              what drove the M x C interaction in its four largest episodes
 │   ├── factor_regressions/    FF5 + UMD + reversal-factor regressions of the market-cap effects
 │   ├── har_vol_target/        HAR volatility targeting of the SPMO proxy
+│   ├── oos/                   out-of-sample evaluation (1975-1994), run once
+│   ├── post_oos/              supplementary analyses run after the out-of-sample evaluation
 │   └── vol_model_comparison/  HAR vs ridge, GARCH(1,1) and EWMA forecasts for volatility targeting
 ├── reports/
 │   ├── data_validation.md     generated data-quality report
@@ -37,7 +39,8 @@ in progress.
 │   ├── 07_factor_regressions.py  factor regressions (in-sample) -> output/factor_regressions/
 │   ├── 08_har_vol_target.py   HAR volatility targeting (in-sample) -> output/har_vol_target/
 │   ├── 09_vol_model_comparison.py  HAR vs ridge, GARCH, EWMA -> output/vol_model_comparison/
-│   └── 10_oos.py              out-of-sample evaluation (1975-1994), run once -> output/oos/
+│   ├── 10_oos.py              out-of-sample evaluation (1975-1994), run once -> output/oos/
+│   └── 11_post_oos.py         post-OOS observations, not pre-registered -> output/post_oos/
 └── requirements.txt
 ```
 
@@ -104,6 +107,7 @@ python scripts/07_factor_regressions.py    # ~40 s
 python scripts/08_har_vol_target.py        # ~30 s
 python scripts/09_vol_model_comparison.py  # ~1.5 min
 python scripts/10_oos.py                   # out-of-sample; design frozen at tag pre-oos
+python scripts/11_post_oos.py              # supplementary, run after the out-of-sample evaluation
 ```
 
 Raw WRDS data is licensed and is not included in this repository.

@@ -108,6 +108,13 @@ def note(fig, period):
              color=attribution.MUTED, fontsize=8.5)
 
 
+def mark_crash(ax):
+    x = CRASH.to_timestamp(how="start")
+    ax.axvline(x, color=attribution.MUTED, linewidth=0.9, linestyle="--")
+    ax.annotate("Oct-1987 crash", (x, 1), xycoords=("data", "axes fraction"), xytext=(4, -4),
+                textcoords="offset points", ha="left", va="top", fontsize=8.5, color=attribution.INK_2)
+
+
 def growth_panels(df, names, title, path, period):
     dates = [df.index[0].to_timestamp(how="start")] + list(df.index.to_timestamp(how="end"))
     fig, axes = plt.subplots(2, 1, figsize=(14, 10), sharex=True, gridspec_kw={"height_ratios": [1.5, 1]})
@@ -120,9 +127,9 @@ def growth_panels(df, names, title, path, period):
     axes[0].set_title("(a) Growth of $1 (log scale; final value in brackets)")
     axes[0].legend(loc="upper left")
     axes[1].yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
-    axes[1].set_title("(b) Drawdown (dashed line: October 1987)")
+    axes[1].set_title("(b) Drawdown")
     for ax in axes:
-        ax.axvline(CRASH.to_timestamp(how="start"), color=attribution.MUTED, linewidth=0.9, linestyle="--")
+        mark_crash(ax)
     fig.suptitle(title, x=0.01, ha="left")
     note(fig, period)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
@@ -140,10 +147,10 @@ def figures(full, df, out, period, full_period):
         ax.step(x, w, where="post", color=COLORS[k], linewidth=1.3,
                 label=f"{k}: average {w.mean():.2f}, range {w.min():.2f}-{w.max():.2f}")
     ax.axhline(1, color=attribution.INK_2, linewidth=0.8)
-    ax.axvline(CRASH.to_timestamp(how="start"), color=attribution.MUTED, linewidth=0.9, linestyle="--")
+    mark_crash(ax)
     ax.set_ylim(bottom=0)
     ax.set_ylabel("Exposure (1 = fully invested)")
-    ax.set_title(f"Out-of-sample exposure to the SPMO proxy: {TARGET:.0%} / forecast, no cap (dashed line: October 1987)")
+    ax.set_title(f"Out-of-sample exposure to the SPMO proxy: {TARGET:.0%} / forecast, no cap")
     ax.legend(loc="upper left")
     note(fig, period)
     fig.tight_layout(rect=(0, 0.03, 1, 1))
