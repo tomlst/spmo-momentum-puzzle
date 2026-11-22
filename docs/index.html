@@ -6,6 +6,8 @@
 <title>The SPMO Momentum Puzzle · Shaotong (Tom) Li</title>
 <meta name="description" content="What drives the S&P 500 Momentum Index, and can its risk be controlled? A survivorship-free CRSP replication, a 2x2x2 attribution, volatility targeting and a pre-registered out-of-sample test." />
 <style>html{color-scheme:light dark}</style>
+<script>window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, chtml: { scale: 0.95 } };</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.js"></script>
 </head>
 <body>
 <style>
@@ -108,6 +110,7 @@
   .mmf .v b { color: var(--navy); }
   .mmf .row.find .k { color: var(--accent); }
 
+  mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 2px 0; }
   .formula { font-family: var(--font-mono); font-size: 0.95rem; color: var(--navy); background: var(--paper-2); border: 1px solid var(--rule); padding: 7px 12px; display: inline-block; margin: 4px 0; }
 
   .callout { border-left: 3px solid var(--accent-2); padding: 4px 0 4px 20px; margin: 22px 0 0; color: var(--ink-2); font-size: 0.96rem; }
@@ -203,11 +206,11 @@
     <p>The academic momentum premium has faded since the late 1990s, yet the Invesco S&amp;P 500 Momentum ETF
     (SPMO) compounded at <b>17.5% a year</b> against 14.3% for the S&amp;P 500 over 2015–2025. This study replicates its
     index with CRSP data (correlation <b>0.992</b> with SPMO) and decomposes the strategy into its three
-    ingredients, namely momentum selection, market-cap weighting and a volatility adjustment.</p>
+    ingredients, namely momentum selection, market-cap weighting and inverse-volatility weighting.</p>
     <p>In-sample, SPMO's returns are <b>largely explained by market beta, momentum exposure and a large-cap
     tilt</b>, with a positive but statistically insignificant alpha. Its edge over 2015–2025 came from holding the
-    S&amp;P 500's <b>large-cap momentum winners</b> as a group, not from concentrated single-stock bets; the
-    volatility adjustment adds nothing. Its weakness is drawdowns (−64% in 2000–2003). Sizing the position by a
+    S&amp;P 500's <b>large-cap momentum winners</b> as a group, without relying on concentrated single-stock bets. The mean return effect of inverse-volatility
+    weighting is statistically insignificant. The proxy's drawdown reached −64% in 2000–2003. Sizing the position by a
     HAR forecast of next month's volatility raises the in-sample Sharpe ratio from 0.51 to 0.72 and roughly halves
     the maximum drawdown. In a <b>pre-registered out-of-sample test</b> on 1975–1994 the improvement has the same
     sign but is smaller and not significant (<a class="xref" href="#exhibit-1">Exhibit 1</a>).</p>
@@ -227,12 +230,12 @@
         <div class="rs">Apr-1998 to Dec-2025; z = 2.55. Max drawdown −64% → −35%.</div></div>
       <div class="rcell"><div class="rn">0.61 → 0.70</div><div class="rl">Sharpe, HAR-targeted (out-of-sample)</div>
         <div class="rs">Apr-1978 to Mar-1995, pre-registered; z = 1.23. Max drawdown −31% → −25%.</div></div>
-      <div class="rcell"><div class="rn">−0.4%</div><div class="rl">Volatility adjustment (V)</div>
+      <div class="rcell"><div class="rn">−0.4%</div><div class="rl">Inverse-volatility weighting (V)</div>
         <div class="rs">Annualised effect of dividing weights by σ, in-sample; t = −1.00.</div></div>
     </div>
     <ol class="takeaways">
       <li><b>No hidden alpha.</b> SPMO is a large-cap momentum portfolio whose returns are largely explained by known factors.</li>
-      <li><b>Of its three ingredients, only momentum × market cap mattered in-sample</b> (+2.8% a year), and only in 1995–2025; the volatility adjustment added nothing measurable.</li>
+      <li><b>Momentum × market cap was the only statistically significant return effect in-sample</b> (+2.8% a year in 1995–2025). The mean return effect of inverse-volatility weighting was statistically insignificant.</li>
       <li><b>The puzzle has two answers in two eras.</b> In 1975–1994 the strategy beat the market through the momentum factor itself; in 2015–2025, with the factor weak, it did so through large-cap winners.</li>
       <li><b>Volatility targeting is insurance against prolonged crashes.</b> It reliably cuts drawdowns; its Sharpe gain depends on whether such crashes occur.</li>
     </ol>
@@ -276,7 +279,7 @@
       <p>SPMO's index is often described simply as "momentum", but it combines three ingredients. It selects stocks
       on momentum divided by volatility, and it weights them by market cap times a momentum score. The project asks two questions.</p>
       <ul>
-        <li><b>Attribution.</b> Does the outperformance come from momentum, from the volatility adjustment, or from market-cap weighting?</li>
+        <li><b>Attribution.</b> How do momentum, market-cap weighting and inverse-volatility weighting contribute to performance?</li>
         <li><b>Improvement.</b> Given the answer, can the construction be improved?</li>
       </ul>
       <p><b>Sample design.</b> The in-sample period is 1995–2025, which contains SPMO's whole live history. The
@@ -394,7 +397,7 @@
         <ul>
           <li><b>M</b> (momentum) holds the top quintile by momentum ÷ σ and weights by momentum, instead of holding the whole S&amp;P 500.</li>
           <li><b>C</b> (market cap) multiplies the weights by market cap.</li>
-          <li><b>V</b> (volatility) divides the weights by σ.</li>
+          <li><b>V</b> (inverse-volatility weighting) divides the weights by σ. All four momentum portfolios rank stocks by momentum ÷ σ at formation.</li>
         </ul>
         <p>A three-digit code gives the switches, so <code>000</code> is the equal-weighted S&amp;P 500 and <code>111</code>
         is the SPMO construction. Effects are differences of monthly returns. A <b>conditional effect</b> switches
@@ -403,8 +406,8 @@
         <span class="formula">M × C = C (momentum) − C (market)</span>.</p></div></div>
       <div class="row find"><div class="k">Finding</div><div class="v">
         <p><a class="xref" href="#table-4">Table 4</a> reports the eight portfolios, and <a class="xref" href="#exhibit-2">Exhibit 2</a> shows every effect with its confidence interval.
-        <b>No main effect is significant, and V contributes nothing</b> (−0.4% a year, both in the market and
-        among winners). The only significant effect is the <b>M × C interaction, +2.8% a year</b> (t = 2.84 with
+        <b>None of the three main effects on mean returns is statistically significant.</b> The V estimate is −0.4% a year. Adding V to portfolio 110 lowers annualised volatility from 19.7% to 17.8%.
+        The only significant return effect is the <b>M × C interaction, +2.8% a year</b> (t = 2.84 with
         independent months, 2.39 Newey-West). Cap weighting loses 0.8% a year across the S&amp;P 500 but gains 2.0%
         within the momentum quintile. No single pair of portfolios differs significantly on its own (<a class="xref" href="#exhibit-3">Exhibit 3</a>).</p></div></div>
     </div>
@@ -546,11 +549,118 @@
       <p class="caption"><b>Exhibit 7.</b> Factor loadings by subperiod, FF5 + UMD + both reversal factors (t-stat in brackets, bold if |t| ≥ 1.96). In 2015–2025 the proxy's momentum loading rises to 0.38 (t = 7.7) even though UMD itself earned little.</p>
     </div>
 
+    <h3 class="sub"><span class="n">4d.</span> Why does M × C exist? A covariance decomposition</h3>
+    <div class="mmf">
+      <div class="row"><div class="k">Motivation</div><div class="v">Sections 4a to 4c measure the interaction and test whether it survives. This subsection splits it, month by month, into three contributions that add up to it exactly, so that its sources can be compared over time and across episodes.</div></div>
+      <div class="row"><div class="k">Method</div><div class="v">
+        <p><b>One tilt.</b> Fix a holding month. A base portfolio holds every stock in the Section 3 universe, with weight \(b_i \ge 0\) on stock \(i\) and \(\sum_i b_i = 1\). Stock \(i\) returns \(r_i\) in the month, so the base returns \(R_b = \sum_i b_i r_i\). The tilt score \(s_i \ge 0\) is set at rebalance and kept for the whole holding period. It equals \(\max(m_i, 0)\) for the stocks in the top quintile of momentum ÷ σ, where \(m_i\) is the 12-1 month return, and 0 for every other stock. The tilted portfolio has weights \(w_i = b_i z_i\) and returns \(R_w = \sum_i w_i r_i\), with</p>
+        \[ \bar s_b = \sum_i b_i s_i, \qquad z_i = \frac{s_i}{\bar s_b}. \]
+        <p>So \(z_i\) is the score relative to its base-weighted mean, and \(\sum_i b_i z_i = 1\). On the equal-weighted base (portfolio <code>000</code>) this tilt gives <code>100</code>, and on the cap-weighted base (<code>010</code>) it gives <code>110</code>. Base and tilt drift with returns from the same start of the holding period, so \(w_i = b_i z_i\) holds in every holding month once \(\bar s_b\) is recomputed from the drifted \(b\).</p>
+        <p><b>The identity.</b> Because \(\sum_i b_i (z_i - 1) = 0\),</p>
+        \[ R_w - R_b = \sum_i b_i (z_i - 1)(r_i - R_b) = \operatorname{Cov}_b(z, r) = \rho_b \, \sigma_b(z) \, \sigma_b(r). \]
+        <p>All three moments are taken across stocks within the month and weighted by \(b\). Here \(\sigma_b(\cdot)\) is a cross-sectional standard deviation, not the stock volatility σ used for V.</p>
+        <ul>
+          <li>\(\rho_b\) is the correlation between score and return in that month, the <b>information coefficient (IC)</b> in the sense of Grinold and Kahn (2000).</li>
+          <li>\(\sigma_b(z)\) is the spread of the relative scores, which measures how far the tilt moves away from its base. It is labelled <b>concentration</b> below.</li>
+          <li>\(\sigma_b(r)\) is the cross-sectional <b>dispersion</b> of returns.</li>
+        </ul>
+        <p>Lo (2008) splits a portfolio's expected return into a passive part and an active part, the covariance between weights and returns. The identity above applies the same idea across stocks within a single month.</p>
+        <p><b>M × C.</b> Write C for the cap-weighted base and E for the equal-weighted one. Applying the identity to both and subtracting gives</p>
+        \[ M \times C_t = (R_{110} - R_{010}) - (R_{100} - R_{000}) = \rho_C \, \sigma_C(z) \, \sigma_C(r) - \rho_E \, \sigma_E(z) \, \sigma_E(r). \]
+        <p>Section 3 averages M × C over V, so the same split is also run on the bases <code>011</code> and <code>001</code> (tilts <code>111</code> and <code>101</code>), and the two results are averaged.</p>
+        <p><b>Shapley split.</b> Going from E to C changes all three factors at once. The Shapley split changes them one at a time in each of the 3! = 6 possible orders and averages the change that each factor makes. With \(\Delta\rho = \rho_C - \rho_E\), the contribution from IC is</p>
+        \[ \phi_\rho = \Delta\rho \left[ \tfrac{1}{3}\big(\sigma_E(z)\,\sigma_E(r) + \sigma_C(z)\,\sigma_C(r)\big) + \tfrac{1}{6}\big(\sigma_C(z)\,\sigma_E(r) + \sigma_E(z)\,\sigma_C(r)\big) \right], \]
+        <p>and the contributions from concentration and dispersion, \(\phi_{\sigma(z)}\) and \(\phi_{\sigma(r)}\), have the same form. The three add up to M × C in every month. This is an accounting identity, so each part is a contribution from one factor and says nothing about cause.</p></div></div>
+      <div class="row find"><div class="k">Result</div><div class="v">
+        <ul>
+          <li><b>The split reproduces Section 3 exactly.</b> Base and tilted returns from the decomposition match the eight portfolios to within 10<sup>−15</sup> in every month, and the averaged M × C is +2.8% a year (t = 2.84 with independent months, 2.39 Newey-West), as in <a class="xref" href="#table-4">Table 4</a>.</li>
+          <li><b>The contribution from IC is the largest</b>, +1.9% a year against +0.5% from concentration and +0.4% from dispersion (<a class="xref" href="#table-6a">Table 6a</a>). None of the three is significant on its own (Newey-West t of 1.61, 0.53 and 0.94).</li>
+          <li><b>On average the cap base has a higher IC</b> (0.019 against 0.008) <b>and lower concentration and dispersion</b> (<a class="xref" href="#table-6b">Table 6b</a>).</li>
+          <li><b>The mix differs by episode</b> (<a class="xref" href="#table-6c">Table 6c</a>, <a class="xref" href="#exhibit-7a">Exhibit 7a</a>). In 2000Q4 the contribution from IC was −10.3% and the contribution from concentration +16.7%. In 2024Q1 almost all of M × C was the contribution from IC (+15.7% of +16.8%).</li>
+          <li><b>Out of sample, 1975 to 1994 (exploratory).</b> M × C is −0.9% a year. The contribution from IC stays positive (+0.6%), while the contributions from concentration and dispersion are negative (<a class="xref" href="#table-6d">Table 6d</a>).</li>
+        </ul></div></div>
+    </div>
+    <div class="exhibit" id="table-6a">
+      <p class="caption" style="margin:0 0 10px"><b>Table 6a.</b> M × C and the contributions from IC, concentration and dispersion, % a year (Newey-West t, 6 lags), Apr-1995 to Dec-2025 (369 months). "Mean" is 12 × the arithmetic monthly mean. The first column averages the two V slices, as Section 3 does. Parts may not add up exactly because of rounding.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Series</th><th>Mean, average of V slices</th><th>V = 0 (bases 010, 000)</th><th>V = 1 (bases 011, 001)</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>M × C</td><td>+2.8% (2.39)</td><td>+3.0% (2.25)</td><td>+2.7% (2.54)</td></tr>
+          <tr><td>Contribution from IC, \(\phi_\rho\)</td><td>+1.9% (1.61)</td><td>+2.0% (1.63)</td><td>+1.7% (1.55)</td></tr>
+          <tr><td>Contribution from concentration, \(\phi_{\sigma(z)}\)</td><td>+0.5% (0.53)</td><td>+0.5% (0.46)</td><td>+0.6% (0.60)</td></tr>
+          <tr><td>Contribution from dispersion, \(\phi_{\sigma(r)}\)</td><td>+0.4% (0.94)</td><td>+0.5% (0.99)</td><td>+0.3% (0.87)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="exhibit" id="table-6b">
+      <p class="caption" style="margin:0 0 10px"><b>Table 6b.</b> Average monthly level of each factor under each base, Apr-1995 to Dec-2025. C is the base with market cap and E the base without it. Dispersion is a monthly standard deviation. Effective N = 1 / Σw² of the tilted portfolio.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Factor</th><th>C, V = 0 (010)</th><th>E, V = 0 (000)</th><th>C, V = 1 (011)</th><th>E, V = 1 (001)</th></tr></thead>
+        <tbody>
+          <tr><td>IC, \(\rho\)</td><td>+0.019</td><td>+0.008</td><td>+0.019</td><td>+0.008</td></tr>
+          <tr><td>Concentration, \(\sigma(z)\)</td><td>2.21</td><td>2.53</td><td>2.13</td><td>2.39</td></tr>
+          <tr><td>Dispersion, \(\sigma(r)\)</td><td>7.00%</td><td>8.15%</td><td>6.49%</td><td>7.38%</td></tr>
+          <tr class="sep"><td>Effective N of the tilt (reference)</td><td>26</td><td>71</td><td>26</td><td>84</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="exhibit" id="table-6c">
+      <p class="caption" style="margin:0 0 10px"><b>Table 6c.</b> M × C and its contributions in the four episodes of <a class="xref" href="#table-5">Table 5</a>, averaged over the V slices. Values are sums of monthly values over the episode, so they differ from Table 5, which compounds each portfolio's returns first. Too few months for t-stats.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Episode</th><th>Months</th><th>M × C</th><th>From IC</th><th>From concentration</th><th>From dispersion</th></tr></thead>
+        <tbody>
+          <tr><td>2000Q4</td><td>3</td><td>+8.5%</td><td>−10.3%</td><td>+16.7%</td><td>+2.1%</td></tr>
+          <tr><td>2009Q2</td><td>3</td><td>+12.6%</td><td>+1.5%</td><td>+4.0%</td><td>+7.1%</td></tr>
+          <tr><td>Apr-2020 to Mar-2021</td><td>12</td><td>+15.1%</td><td>+5.9%</td><td>+5.2%</td><td>+4.1%</td></tr>
+          <tr><td>2024Q1</td><td>3</td><td>+16.8%</td><td>+15.7%</td><td>−0.1%</td><td>+1.3%</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="exhibit" id="exhibit-7a">
+      <a class="plate" href="figures/mxc_decomposition.png"><img src="figures/mxc_decomposition.png" alt="Trailing 12-month M x C and its contributions from IC, concentration and dispersion" loading="lazy"></a>
+      <p class="caption"><b>Exhibit 7a.</b> Trailing 12-month sum of the monthly M × C (black) and of its contributions from IC, concentration and dispersion, Apr-1995 to Dec-2025, averaged over the V slices. Shading marks the episodes in Table 6c.</p>
+    </div>
+    <div class="exhibit" id="table-6d">
+      <p class="caption" style="margin:0 0 10px"><b>Table 6d. Exploratory.</b> The same split out of sample, Apr-1975 to Mar-1995 (240 months), % a year (Newey-West t, 6 lags). The holdout was already used once for the pre-registered test in Section 6, so these numbers describe the period and are not a test.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Series</th><th>Mean, average of V slices</th><th>V = 0 (bases 010, 000)</th><th>V = 1 (bases 011, 001)</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>M × C</td><td>−0.9% (−1.14)</td><td>−0.9% (−1.02)</td><td>−0.9% (−1.22)</td></tr>
+          <tr><td>Contribution from IC, \(\phi_\rho\)</td><td>+0.6% (0.57)</td><td>+0.7% (0.71)</td><td>+0.4% (0.41)</td></tr>
+          <tr><td>Contribution from concentration, \(\phi_{\sigma(z)}\)</td><td>−0.8% (−1.89)</td><td>−0.8% (−1.83)</td><td>−0.7% (−1.95)</td></tr>
+          <tr><td>Contribution from dispersion, \(\phi_{\sigma(r)}\)</td><td>−0.7% (−1.79)</td><td>−0.9% (−1.92)</td><td>−0.6% (−1.60)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="callout" id="s4d-interpretation">
+      <div class="lab">Interpretation</div>
+      <p style="margin:0 0 10px">The split points to two sources of a different kind. The larger is the <b>contribution from IC</b>,
+      about two thirds of the in-sample average. With cap weights the momentum score is more closely correlated with
+      holding-period returns than with equal weights (0.019 against 0.008 on average), so the score ranked the large
+      stocks that dominate the cap base better than it ranked the rest. 2024Q1 is the clearest case, with a cap-weighted
+      IC of 0.51 against 0.15, in line with the large-cap winners such as NVDA described in Section 4a.</p>
+      <p style="margin:0 0 10px">The <b>contributions from concentration and dispersion</b> work through the sign of the IC. The cap
+      base has a lower \(\sigma(z)\) and a lower \(\sigma(r)\) on average, so the tilt built on it moves less far from
+      its base, across a less dispersed set of returns. That smaller bet earns less when the IC is positive and loses
+      less when it is negative, because in a month with a negative IC the momentum tilt trails its base. In-sample,
+      months with a positive IC take 2.2 and 1.4 points a year off these two contributions, and months with a negative
+      IC add 2.8 and 1.8 points, so both end up slightly positive. 2000Q4 shows the pattern most clearly, with a
+      contribution of −10.3% from IC offset by +16.7% from concentration. A lower \(\sigma(z)\) does not mean the
+      cap-weighted tilt holds more stocks. It holds fewer effective stocks (26 against 71), and \(\sigma(z)\) only
+      measures how far the tilt departs from its own base.</p>
+      <p style="margin:0">Two cautions apply. None of the three contributions is significant on its own, so the split shows where
+      the +2.8% sits rather than establishing three separate effects. And in the exploratory 1975 to 1994 period the
+      balance reverses. The contributions from concentration and dispersion lose more in months with a positive IC
+      than they gain in months with a negative IC, and the contribution from IC is small, which leaves M × C at −0.9% a
+      year. Because the decomposition is an accounting identity, all of this describes contributions, not causes.</p>
+    </div>
+
     <div class="callout">
       <div class="lab">Answer to question 1, in-sample</div>
       SPMO's edge is <b>market beta + momentum exposure + a large-cap tilt</b>, because it holds the S&amp;P 500's large-cap
-      momentum winners. There is no significant alpha, no reliance on a few stocks, and the volatility adjustment does
-      nothing. The broad long-short momentum factor did fade, but <b>large-cap winners inside the S&amp;P 500 had
+      momentum winners. An equal-weighted basket of large winners has a similar Sharpe ratio in 2015–2025. The proxy's
+      alpha and the mean return effect of inverse-volatility weighting are statistically insignificant. The broad
+      long-short momentum factor did fade, but <b>large-cap winners inside the S&amp;P 500 had
       their best decade in 2015–2025</b> (Sharpe 0.92 against 0.45 the decade before), and SPMO's rules sat squarely on
       that group. The price is drawdowns of −64% in 2000–2003 and −58% in 2008–2009.
     </div>
@@ -693,7 +803,7 @@
     <div class="prose" style="margin-top:18px">
       <ul>
         <li><b>M × C does not hold out of sample.</b> Over 1975–1994 it is −0.9% a year (t = −1.07); over 1975–2025 as a whole, +1.4% (t = 1.67). Cap weighting lost money both across the market (−2.6%) and among winners (−3.5%) in a period when small caps led. "Momentum × market cap is the key ingredient" holds for 1995–2025 only (<a class="xref" href="#exhibit-13">Exhibit 13</a>).</li>
-        <li><b>The proxy still beat the market out of sample through momentum itself.</b> Momentum selection earned +3.5% a year (t = 2.13) while cap weighting cost 3.0% (t = −3.22). UMD averaged +10.2% a year in that period, and the proxy's UMD loading of 0.45 accounts for 4.6 points a year of its excess over the S&amp;P 500, with an alpha of −0.8% (not significant). An equal-weighted momentum portfolio (100) returned 20.8% a year against 16.5% for the proxy.</li>
+        <li><b>The proxy still beat the market out of sample through momentum itself.</b> Momentum selection earned +3.5% a year (t = 2.13) while cap weighting cost 3.0% (t = −3.22). UMD averaged +10.2% a year in that period, and the proxy's UMD loading of 0.45 accounts for 4.6 points a year of its excess over the S&amp;P 500, with an alpha of −0.8% (not significant). Portfolio 100, weighted by positive momentum scores, returned 20.8% a year against 16.5% for the proxy.</li>
         <li><b>The puzzle, refined.</b> The same rules beat the market in both eras for different reasons. In 1975–1994 the edge came through the momentum factor, with cap weighting a drag. In 2015–2025 it came through large-cap winners, with the momentum factor weak.</li>
         <li><b>Fifty-year view.</b> With HAR estimated on one expanding window from 1975, $1 in Apr-1978 grows to $1,235 with targeting, $615 for the proxy and $274 for the S&amp;P 500 (Sharpe 0.77, 0.62 and 0.58; drawdown −40%, −64%, −51%). Nearly all of the improvement comes from 2000–2002 and 2008–2009; in the 2020s targeting lagged (0.77 vs 0.92) because sudden shocks were followed by fast rebounds (<a class="xref" href="#exhibit-14">Exhibit 14</a>).</li>
       </ul>
@@ -713,7 +823,7 @@
     <h2 class="sec"><span class="n">7.</span> Conclusions</h2>
     <ul class="limits">
       <li><b>SPMO has no hidden alpha.</b> It beat the S&amp;P 500 by holding large-cap momentum winners in 2015–2025 and through the momentum factor itself in 1975–1994. Its returns are largely explained by known factors and do not rely on a few stocks.</li>
-      <li><b>The volatility adjustment adds nothing measurable, and momentum × market cap depends on the period.</b> The volatility adjustment changed annual returns by −0.4% in-sample and −0.3% out of sample, neither significant. Momentum × market cap added +2.8% a year in 1995–2025 but −0.9% (not significant) in 1975–1994, and +1.4% (t = 1.67) over the whole fifty years.</li>
+      <li><b>Inverse-volatility weighting has a statistically insignificant effect on mean returns.</b> The estimated effect is −0.4% a year in-sample and −0.3% out of sample. The momentum portfolios use volatility-adjusted ranks throughout. Momentum × market cap added +2.8% a year in 1995–2025, −0.9% (not significant) in 1975–1994, and +1.4% (t = 1.67) over the whole fifty years.</li>
       <li><b>Volatility targeting is insurance against prolonged crashes.</b> It roughly halved drawdowns in-sample and cut them out of sample; its Sharpe improvement depends on whether such crashes occur, so it is a risk-management tool, not a stable source of alpha.</li>
       <li><b>Methodological lessons.</b> Forecast accuracy and portfolio value diverged across four models, and simple, slow forecasts were the most robust.</li>
     </ul>
@@ -746,16 +856,18 @@
       did not improve volatility targeting. The weighting schemes and the barbell looked better in some periods, but
       they were selected after inspecting in-sample results, so their in-sample performance is not reliable
       evidence, and they were not adopted.</p>
-      <p><b>Reproducing.</b> Eleven numbered scripts rebuild every number and figure on this page from WRDS
-      (<code>01_fetch_wrds.py</code> … <code>11_post_oos.py</code>); each writes a <code>summary.md</code> under
+      <p><b>Reproducing.</b> Twelve numbered scripts rebuild every number and figure on this page from WRDS
+      (<code>01_fetch_wrds.py</code> … <code>12_mxc_decomposition.py</code>); each writes a <code>summary.md</code> under
       <code>output/</code>. WRDS data are licensed and not included in the repository.</p>
     </div>
     <h3 class="sub">References</h3>
     <ul class="refs">
       <li>Corsi, F. (2009). A simple approximate long-memory model of realized volatility. <i>Journal of Financial Econometrics</i> 7(2), 174–196.</li>
+      <li>Grinold, R. C., and R. N. Kahn (2000). <i>Active Portfolio Management</i>, 2nd ed. New York, McGraw-Hill.</li>
       <li>Hwang, S., and A. Rubesam (2015). The disappearance of momentum. <i>European Journal of Finance</i> 21(7), 584–607.</li>
       <li>Jegadeesh, N., and S. Titman (1993). Returns to buying winners and selling losers. <i>Journal of Finance</i> 48(1), 65–91.</li>
       <li>Jobson, J. D., and B. M. Korkie (1981). Performance hypothesis testing with the Sharpe and Treynor measures. <i>Journal of Finance</i> 36(4), 889–908.</li>
+      <li>Lo, A. W. (2008). Where do alphas come from? A measure of the value of active investment management. <i>Journal of Investment Management</i> 6(2), 1–29.</li>
       <li>Memmel, C. (2003). Performance hypothesis testing with the Sharpe ratio. <i>Finance Letters</i> 1, 21–23.</li>
       <li>S&amp;P Dow Jones Indices (2026). <i>S&amp;P Momentum Indices Methodology</i>.</li>
     </ul>

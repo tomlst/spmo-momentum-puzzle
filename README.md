@@ -1,7 +1,7 @@
 # S&P 500 Momentum Research
 
 This project asks where the outperformance of the Invesco S&P 500 Momentum ETF (SPMO) comes from:
-momentum, the volatility adjustment, or market-cap weighting. It then tests whether the
+momentum, inverse-volatility weighting, or market-cap weighting. It then tests whether the
 construction can be improved. The analysis replicates SPMO's index on a point-in-time,
 survivorship-free S&P 500 universe from 1975 to 2025. In-sample is 1995–2025 and out-of-sample is
 1975–1994. See [introduction.md](introduction.md).
@@ -40,7 +40,9 @@ in progress.
 │   ├── 08_har_vol_target.py   HAR volatility targeting (in-sample) -> output/har_vol_target/
 │   ├── 09_vol_model_comparison.py  HAR vs ridge, GARCH, EWMA -> output/vol_model_comparison/
 │   ├── 10_oos.py              out-of-sample evaluation (1975-1994), run once -> output/oos/
-│   └── 11_post_oos.py         post-OOS observations, not pre-registered -> output/post_oos/
+│   ├── 11_post_oos.py         post-OOS observations, not pre-registered -> output/post_oos/
+│   ├── 12_mxc_decomposition.py  covariance decomposition of M x C (IC, concentration, dispersion) -> output/mxc_decomposition/
+│   └── mxc_decomposition.py   monthly moments, Shapley split and checks used by 12
 └── requirements.txt
 ```
 
@@ -108,6 +110,7 @@ python scripts/08_har_vol_target.py        # ~30 s
 python scripts/09_vol_model_comparison.py  # ~1.5 min
 python scripts/10_oos.py                   # out-of-sample; design frozen at tag pre-oos
 python scripts/11_post_oos.py              # supplementary, run after the out-of-sample evaluation
+python scripts/12_mxc_decomposition.py     # ~45 s; its out-of-sample table is exploratory
 ```
 
 Raw WRDS data is licensed and is not included in this repository.

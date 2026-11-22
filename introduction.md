@@ -21,8 +21,8 @@ That raises the question of what SPMO's outperformance actually rewards.
 
 ## Research questions
 
-1. **Attribution.** Does SPMO's outperformance come from momentum, from the volatility adjustment, or
-   from market-cap weighting?
+1. **Attribution.** How do momentum, inverse-volatility weighting and market-cap weighting
+   contribute to SPMO's performance? The momentum portfolios use volatility-adjusted ranks throughout.
 2. **Improvement.** Given the answer, can the construction be improved?
 
 The analysis has three steps. It first replicates SPMO's index with CRSP data, extending it back to
