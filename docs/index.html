@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>The SPMO Momentum Puzzle · Shaotong (Tom) Li</title>
 <meta name="description" content="What drives the S&P 500 Momentum Index, and can its risk be controlled? A survivorship-free CRSP replication, a 2x2x2 attribution, volatility targeting and a pre-registered out-of-sample test." />
-<style>html{color-scheme:light dark}</style>
+<style>html{color-scheme:light dark}:root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}</style>
+<script>(function(){try{var t=localStorage.getItem("tomlst-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 <script>window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, chtml: { scale: 0.95 } };</script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-chtml.js"></script>
 </head>
@@ -23,6 +24,8 @@
     :root { --paper:#0f1420; --paper-2:#161d2b; --navy:#e3e9f2; --ink:#ccd5e1; --ink-2:#93a0b2; --ink-3:#606c7e;
       --rule:#27313f; --rule-strong:#6b7789; --accent:#6193d2; --accent-soft:rgba(97,147,210,0.15); --accent-2:#d3737f; }
   }
+  :root[data-theme="light"] { --paper:#ffffff; --paper-2:#f5f7f9; --navy:#15294d; --ink:#1f2733; --ink-2:#54606f; --ink-3:#8894a2; --rule:#d8dde4; --rule-strong:#15294d; --accent:#2f5c9e; --accent-soft:rgba(47,92,158,0.09); --accent-2:#9b2f3f; }
+  :root[data-theme="dark"] { --paper:#0f1420; --paper-2:#161d2b; --navy:#e3e9f2; --ink:#ccd5e1; --ink-2:#93a0b2; --ink-3:#606c7e; --rule:#27313f; --rule-strong:#6b7789; --accent:#6193d2; --accent-soft:rgba(97,147,210,0.15); --accent-2:#d3737f; }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
@@ -43,6 +46,10 @@
   .masthead .institution { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-2); }
   .masthead a { color: var(--ink-2); }
   .masthead a:hover { color: var(--accent); }
+  .mast-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .theme-toggle { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); background: transparent; border: 1px solid var(--rule); padding: 5px 11px; cursor: pointer; }
+  .theme-toggle:hover { border-color: var(--navy); color: var(--navy); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .rule-double { border-top: 3px double var(--rule-strong); margin-top: -1px; }
 
   /* title */
@@ -183,7 +190,10 @@
 <div class="col">
   <div class="masthead">
     <div class="institution"><a href="index.html">← Shaotong (Tom) Li</a> &nbsp;·&nbsp; Research Project</div>
-    <div class="institution"><a href="https://github.com/tomlst/spmo-momentum-puzzle">Code and data pipeline on GitHub →</a></div>
+    <div class="mast-right">
+      <div class="institution"><a href="https://github.com/tomlst/spmo-momentum-puzzle">Code and data pipeline on GitHub →</a></div>
+      <button class="theme-toggle" id="themeBtn" aria-label="Toggle color theme">Theme</button>
+    </div>
   </div>
   <div class="rule-double"></div>
 
@@ -903,6 +913,23 @@
   box.addEventListener("click", function (e) { if (e.target === box || e.target.classList.contains("lb-body")) box.close(); });
   box.addEventListener("close", function () { img.removeAttribute("src"); });
 })();
+</script>
+<script>
+  (function () {
+    var KEY = "tomlst-theme", root = document.documentElement;
+    var btn = document.getElementById("themeBtn");
+    if (btn) btn.addEventListener("click", function () {
+      var cur = root.getAttribute("data-theme");
+      var sysDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var next = cur ? (cur === "dark" ? "light" : "dark") : (sysDark ? "light" : "dark");
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+    // the homepage and the report share one choice; a change in another open tab applies here too
+    window.addEventListener("storage", function (e) {
+      if (e.key === KEY && (e.newValue === "light" || e.newValue === "dark")) root.setAttribute("data-theme", e.newValue);
+    });
+  })();
 </script>
 </body>
 </html>
